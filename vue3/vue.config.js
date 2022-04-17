@@ -4,4 +4,10 @@ module.exports = defineConfig({
   devServer: {
     port: 6003,
   },
+  configureWebpack: {
+    output: {
+      libraryTarget: "umd",
+      library: "vue3",
+    },
+  },
 });
