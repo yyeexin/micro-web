@@ -1,7 +1,23 @@
-console.log(11123);
+import { createRoot } from "react-dom/client";
+import "./global.less";
+import App from "./App";
 
-const app = <div>123</div>;
+const container = document.getElementById("app");
+const root = createRoot(container);
+root.render(<App />);
 
-console.log(app);
+// 重写pushState replaceState
 
-const a: string = "123";
+function _rw(type: string) {
+  const origin = history[type];
+  return function (...args) {
+    const event = new Event(type);
+    event.arguments = args;
+    window.dispatchEvent(event);
+
+    return origin.apply(this, args);
+  };
+}
+
+history.pushState = _rw("pushState");
+history.replaceState = _rw("replaceState");
