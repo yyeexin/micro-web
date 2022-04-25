@@ -1,33 +1,16 @@
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 
 const App = () => {
-  useEffect(() => {
-    window.addEventListener("popstate", function (event) {
-      console.log(event);
-    });
-    window.addEventListener("pushState", function (event) {
-      console.log(event);
-    });
-    window.addEventListener("replaceState", function (event) {
-      console.log(event);
-    });
-  }, []);
-
-  const handleClick = (event) => {
-    event.preventDefault();
-    const url = event.target.pathname;
-    history.pushState(null, null, url);
-  };
-
   return (
-    <div className="nav-bar">
-      <a href="/bar" onClick={handleClick}>
-        bar
-      </a>
-      <a href="/foo" onClick={handleClick}>
-        foo
-      </a>
-    </div>
+    <BrowserRouter>
+      <div className="nav-bar">
+        <Link to="/vue2-app">vue2-app</Link>
+        <Link to="/vue3-app">vue3-app</Link>
+      </div>
+      <div id="micro-container"></div>
+    </BrowserRouter>
   );
 };
 
