@@ -19,8 +19,10 @@ export const lifeCycle = async () => {
 export const beforeLoad = async (app) => {
   await runMainLifeCycle("beforeLoad");
   await app?.beforeLoad?.();
-  const appContext = await loadHtml(app);
-  return appContext;
+  const subApp = await loadHtml(app);
+
+  subApp?.beforeLoad?.();
+  return subApp;
 };
 
 export const mounted = async (app) => {
