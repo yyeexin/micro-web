@@ -1,12 +1,13 @@
 import { findAppByRoute } from "./currentApp";
 import { getMainLifeCycle } from "./mainLifeCycle";
+import { loadHtml } from "./loadHtml";
 
 export const lifeCycle = async () => {
   const prevApp = findAppByRoute(window.__ORIGIN_APP__);
   const nextApp = findAppByRoute(window.__CURRENT_SUB_APP__);
 
-  console.log(prevApp);
-  console.log(nextApp);
+  // console.log(prevApp);
+  // console.log(nextApp);
 
   if (!nextApp) return;
   if (prevApp) await destroyed(prevApp);
@@ -18,7 +19,7 @@ export const lifeCycle = async () => {
 export const beforeLoad = async (app) => {
   await runMainLifeCycle("beforeLoad");
   await app?.beforeLoad?.();
-  const appContext = null;
+  const appContext = await loadHtml(app);
   return appContext;
 };
 

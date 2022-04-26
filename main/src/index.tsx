@@ -11,19 +11,19 @@ const subAppList = [
   {
     name: "vue2-app",
     activeRule: "/vue2-app",
-    container: "micro-container",
+    container: "#micro-container",
     entry: "//localhost:6002/",
   },
   {
     name: "vue3-app",
     activeRule: "/vue3-app",
-    container: "micro-container",
+    container: "#micro-container",
     entry: "//localhost:6003/",
   },
   {
     name: "umi-app",
     activeRule: "/umi-app",
-    container: "micro-container",
+    container: "#micro-container",
     entry: "//localhost:6001/",
   },
 ];

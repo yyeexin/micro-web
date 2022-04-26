@@ -3,6 +3,9 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     port: 6003,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+    },
   },
   configureWebpack: {
     output: {
