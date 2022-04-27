@@ -10,7 +10,7 @@ module.exports = defineConfig({
   configureWebpack: {
     output: {
       libraryTarget: "umd",
-      library: "vue3",
+      library: "vue3-app",
     },
   },
 });

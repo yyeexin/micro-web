@@ -3,35 +3,30 @@ import { getMainLifeCycle } from "./mainLifeCycle";
 import { loadHtml } from "./loadHtml";
 
 export const lifeCycle = async () => {
-  const prevApp = findAppByRoute(window.__ORIGIN_APP__);
-  const nextApp = findAppByRoute(window.__CURRENT_SUB_APP__);
+  const prevAppConfig = findAppByRoute(window.__ORIGIN_APP__);
+  const nextAppConfig = findAppByRoute(window.__CURRENT_SUB_APP__);
 
-  // console.log(prevApp);
-  // console.log(nextApp);
+  if (!nextAppConfig) return;
+  if (prevAppConfig) await destroyed(prevAppConfig);
 
-  if (!nextApp) return;
-  if (prevApp) await destroyed(prevApp);
-
-  const app = await beforeLoad(nextApp);
+  const app = await beforeLoad(nextAppConfig);
   await mounted(app);
 };
 
-export const beforeLoad = async (app) => {
+export const beforeLoad = async (appConfig) => {
   await runMainLifeCycle("beforeLoad");
-  await app?.beforeLoad?.();
-  const subApp = await loadHtml(app);
-
-  subApp?.beforeLoad?.();
-  return subApp;
+  const app = await loadHtml(appConfig);
+  await app?.bootstrap?.();
+  return app;
 };
 
 export const mounted = async (app) => {
-  await app?.mounted?.();
+  await app?.mount?.();
   await runMainLifeCycle("mounted");
 };
 
-export const destroyed = async (app) => {
-  await app?.destroyed?.();
+export const destroyed = async (appConfig) => {
+  await window[appConfig.name]?.unmount?.();
   await runMainLifeCycle("destroyed");
 };
 

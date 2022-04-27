@@ -1,78 +1,81 @@
-export const loadHtml = async (app) => {
-  let container = app.container;
-  let entry = app.entry;
+export const loadHtml = async (appConfig) => {
+  let container = appConfig.container;
+  const ct = document.querySelector(container);
+  if (!ct) throw Error("容器不存在");
+
+  let entry = appConfig.entry;
   const [dom, scripts] = await parseHtml(entry);
 
-  console.log(scripts);
-
-  const ct = document.querySelector(container);
-
-  if (!ct) throw Error("容器不存在");
   ct.innerHTML = dom;
 
+  let app;
+
   scripts.forEach((script) => {
-    sandBox(script, app.name);
+    app = sandBox(script, appConfig.name);
   });
 
   return app;
 };
 
-export const parseHtml = async (entry) => {
-  const html = await fetchResource(entry);
+export const parseHtml = async (entry: string): Promise<[string, string[]]> => {
+  const htmlText = await fetchResource(entry);
+  let allScripts = [];
 
-  let allScript = [];
+  // 将html文本转换成dom
+  const htmlDom = document.createElement("div");
+  htmlDom.innerHTML = htmlText;
 
-  const div = document.createElement("div");
-
-  div.innerHTML = html;
-
-  const [dom, scriptUrl, script] = await getResource(div, entry);
-
-  const fetchedScripts = await Promise.all(
-    scriptUrl.map(async (item) => await fetchResource(item))
+  const [replacedHtmlText, scriptUrls, scripts] = await getResource(
+    htmlDom,
+    entry
   );
 
-  allScript = script.concat(fetchedScripts);
+  const fetchedScripts = await Promise.all(
+    scriptUrls.map(async (item) => await fetchResource(item))
+  );
 
-  return [dom, allScript];
+  allScripts = scripts.concat(fetchedScripts);
+
+  return [replacedHtmlText, allScripts];
 };
 
-export const fetchResource = (url) =>
-  fetch(url).then(async (res) => await res.text());
+export const getResource = async (
+  root: HTMLElement,
+  entry: string
+): Promise<[string, string[], string[]]> => {
+  const scriptUrl: string[] = [];
+  const script: string[] = [];
 
-export const getResource = async (root, entry) => {
-  const dom = root.outerHTML;
-  const scriptUrl = [];
-  const script = [];
-
-  function deepParse(element) {
+  function deepParse(element: Element) {
+    const parent = element.parentElement;
     const children = element.children;
-    const parent = element.parent;
+
+    for (let i = 0; i < children.length; i++) {
+      deepParse(children[i]);
+    }
 
     if (element.nodeName.toLowerCase() === "script") {
       const src = element.getAttribute("src");
-      console.log(src);
       if (!src) {
         script.push(element.outerHTML);
       } else {
         if (src.startsWith("http")) {
           scriptUrl.push(src);
         } else {
-          scriptUrl.push(`http:${entry}/${src}`);
+          scriptUrl.push(`http:${entry}${src}`);
         }
       }
 
       if (parent) {
-        parent.replaceChild(
-          document.createComment("此js内容已经被微前端替换"),
-          element
-        );
+        const shadowScript = document.createElement("script");
+        shadowScript.innerHTML = "/** 此js内容已经被微前端替换 */";
+        parent.replaceChild(shadowScript, element);
       }
     }
 
     if (element.nodeName.toLowerCase() === "link") {
       const href = element.getAttribute("href");
-      if (href.endsWith(".js")) {
+      if (href?.endsWith(".js")) {
         if (href.startsWith("http")) {
           scriptUrl.push(href);
         } else {
@@ -80,18 +83,17 @@ export const getResource = async (root, entry) => {
         }
       }
     }
-
-    for (let i = 0; i < children.length; i++) {
-      deepParse(children[i]);
-    }
   }
 
   deepParse(root);
 
-  return [dom, scriptUrl, script];
+  return [root.outerHTML, scriptUrl, script];
 };
 
-const sandBox = (script, appName) => {
+export const fetchResource = (url: string) =>
+  fetch(url).then(async (res) => await res.text());
+
+const sandBox = (script: string, appName: string) => {
   window.__MICRO_WEB__ = true;
 
   // return eval(`
@@ -101,7 +103,7 @@ const sandBox = (script, appName) => {
   // }`).call(window, window);
 
   const scriptText = `${script} return window['${appName}']`;
-  const lifeCycle = new Function(scriptText).call(window, window);
+  const app = new Function(scriptText).call(window, window);
 
-  console.log(lifeCycle);
+  return app;
 };

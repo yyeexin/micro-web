@@ -26,5 +26,5 @@ export const mount = () => {
 };
 
 export const unmount = () => {
-  console.log("卸载完成", instance);
+  console.log("卸载完成");
 };
