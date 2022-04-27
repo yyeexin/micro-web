@@ -1,17 +1,15 @@
-export const loadHtml = async (appConfig) => {
-  let container = appConfig.container;
+export const loadHtml = async (app) => {
+  let container = app.container;
   const ct = document.querySelector(container);
   if (!ct) throw Error("容器不存在");
 
-  let entry = appConfig.entry;
+  let entry = app.entry;
   const [dom, scripts] = await parseHtml(entry);
 
   ct.innerHTML = dom;
 
-  let app;
-
   scripts.forEach((script) => {
-    app = sandBox(script, appConfig.name);
+    sandBox(app, script);
   });
 
   return app;
@@ -93,7 +91,7 @@ export const getResource = async (
 export const fetchResource = (url: string) =>
   fetch(url).then(async (res) => await res.text());
 
-const sandBox = (script: string, appName: string) => {
+const sandBox = (app, script: string) => {
   window.__MICRO_WEB__ = true;
 
   // return eval(`
@@ -101,9 +99,15 @@ const sandBox = (script: string, appName: string) => {
   //   ${script}
   //   return window['${appName}']
   // }`).call(window, window);
-
+  const appName = app.name;
   const scriptText = `${script} return window['${appName}']`;
-  const app = new Function(scriptText).call(window, window);
+  const lifeCycle = new Function(scriptText).call(window, window);
+
+  if (lifeCycle?.bootstrap && lifeCycle?.mount && lifeCycle?.unmount) {
+    app.bootstrap = lifeCycle.bootstrap;
+    app.mount = lifeCycle.mount;
+    app.unmount = lifeCycle.unmount;
+  }
 
   return app;
 };

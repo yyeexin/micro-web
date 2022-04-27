@@ -13,9 +13,9 @@ export const lifeCycle = async () => {
   await mounted(app);
 };
 
-export const beforeLoad = async (appConfig) => {
+export const beforeLoad = async (app) => {
   await runMainLifeCycle("beforeLoad");
-  const app = await loadHtml(appConfig);
+  await loadHtml(app);
   await app?.bootstrap?.();
   return app;
 };
@@ -25,8 +25,8 @@ export const mounted = async (app) => {
   await runMainLifeCycle("mounted");
 };
 
-export const destroyed = async (appConfig) => {
-  await window[appConfig.name]?.unmount?.();
+export const destroyed = async (app) => {
+  await app?.unmount?.();
   await runMainLifeCycle("destroyed");
 };
 
