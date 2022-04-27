@@ -15,7 +15,6 @@ export const routerHandler = () => {
 
 const turnApp = async () => {
   if (isTurnChild()) {
-    console.log("路由切换了");
     await lifeCycle();
   }
 };
@@ -42,12 +41,17 @@ export const start = () => {
 
   if (app) {
     window.__CURRENT_SUB_APP__ = app.activeRule;
-    turnApp();
+    setTimeout(turnApp, 20);
   }
 };
 
 // 子应用是否做了切换
 const isTurnChild = () => {
+  if (typeof window.__ORIGIN_APP__ === "undefined") {
+    window.__ORIGIN_APP__ = window.__CURRENT_SUB_APP__;
+    return true;
+  }
+
   window.__ORIGIN_APP__ = window.__CURRENT_SUB_APP__;
   if (window.__CURRENT_SUB_APP__ === window.location.pathname) return false;
 
