@@ -47,16 +47,16 @@ export const start = () => {
 
 // 子应用是否做了切换
 const isTurnChild = () => {
+  const currentApp = window.location.pathname.match(/(\/[\w-]+)/);
+  if (!currentApp) return;
+
   if (typeof window.__ORIGIN_APP__ === "undefined") {
-    window.__ORIGIN_APP__ = window.__CURRENT_SUB_APP__;
+    window.__ORIGIN_APP__ = window.__CURRENT_SUB_APP__ = currentApp[0];
     return true;
   }
 
   window.__ORIGIN_APP__ = window.__CURRENT_SUB_APP__;
   if (window.__CURRENT_SUB_APP__ === window.location.pathname) return false;
-
-  const currentApp = window.location.pathname.match(/(\/[\w-]+)/);
-  if (!currentApp) return;
 
   window.__CURRENT_SUB_APP__ = currentApp[0];
   return true;
