@@ -27,6 +27,7 @@ export const mounted = async (app) => {
 
 export const destroyed = async (app) => {
   await app?.unmount?.();
+  app?.proxy?.inactive?.();
   await runMainLifeCycle("destroyed");
 };
 

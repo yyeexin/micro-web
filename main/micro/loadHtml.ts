@@ -1,3 +1,5 @@
+import ProxySandbox from "./proxySandbox";
+
 export const loadHtml = async (app) => {
   let container = app.container;
   const ct = document.querySelector(container);
@@ -8,8 +10,11 @@ export const loadHtml = async (app) => {
 
   ct.innerHTML = dom;
 
+  const proxy = new ProxySandbox();
+  if (!app.proxy) app.proxy = proxy;
+
   scripts.forEach((script) => {
-    sandBox(app, script);
+    sandBox(app, script, proxy.windowProxy);
   });
 
   return app;
@@ -91,17 +96,18 @@ export const getResource = async (
 export const fetchResource = (url: string) =>
   fetch(url).then(async (res) => await res.text());
 
-const sandBox = (app, script: string) => {
+const sandBox = (app, script: string, windowProxy) => {
+  window.windowProxy = windowProxy;
   window.__MICRO_WEB__ = true;
-
-  // return eval(`
-  // () => {
-  //   ${script}
-  //   return window['${appName}']
-  // }`).call(window, window);
   const appName = app.name;
-  const scriptText = `${script} return window['${appName}']`;
-  const lifeCycle = new Function(scriptText).call(window, window);
+  const scriptText = `
+    return ((window) => {
+      ${script}
+      return window['${appName}']
+    })(window.windowProxy)
+  `;
+  // const lifeCycle = new Function(scriptText).call(proxy, proxy);
+  const lifeCycle = new Function(scriptText)();
 
   if (lifeCycle?.bootstrap && lifeCycle?.mount && lifeCycle?.unmount) {
     app.bootstrap = lifeCycle.bootstrap;
